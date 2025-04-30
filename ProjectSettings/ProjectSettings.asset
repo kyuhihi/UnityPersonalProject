@@ -4,7 +4,7 @@
 PlayerSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 28
-  productGUID: ac198e65a5dc00743b95fbede4817995
+  productGUID: 2706cc341e4f83748a62214c19478497
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
   AndroidEnableSustainedPerformanceMode: 0
@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: DefaultCompany
-  productName: MySurvival
+  productName: Quat 3D Proj
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -837,14 +837,14 @@ PlayerSettings:
   editorAssembliesCompatibilityLevel: 1
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: MySurvival
+  metroPackageName: Quat 3D Proj
   metroPackageVersion: 
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
   metroCertificateIssuer: 
   metroCertificateNotAfter: 0000000000000000
-  metroApplicationDescription: MySurvival
+  metroApplicationDescription: Quat 3D Proj
   wsaImages: {}
   metroTileShortName: 
   metroTileShowName: 0
@@ -915,10 +915,10 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: dd7dc174-cdc6-40ef-9538-9e9b93d3db57
+  cloudProjectId: c8111c86-790b-470c-bef8-734913138e72
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: MySurvival
+  projectName: Quat 3D Proj
   organizationId: gimgyugyu96
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
