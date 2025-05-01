@@ -1,20 +1,37 @@
+using System;
+using System.ComponentModel.Design;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class Player : MonoBehaviour
 {
     public float speed;
+    public GameObject[] weapons;
+    public bool[] hasWeapons;
+    public GameObject[] grenades;
+
     float hAxis;
     float vAxis;
     bool walkDown;
     bool jumpDown;
+    bool itemDown;
+
+    public bool[] swaps = {false,false,false};
+    int iCurWeaponIndex= -1;
+
     bool isJump = false;
     bool isDodge = false;
+    bool isSwapping = false;
 
     Vector3 moveVec;
     Vector3 dodgeVec;
 
     Rigidbody rigidBody;
     Animator anim;
+
+    GameObject m_pNearObject = null;
+    GameObject m_pEquipWeapon = null;
 
     void Awake()
     {
@@ -30,7 +47,54 @@ public class Player : MonoBehaviour
         Turn();
         Jump();
         Dodge();
+        Swap();
+        Interaction();
+    }
 
+
+    void Swap()
+    {
+        int iWeaponIndex= -1;
+        for(int i=0;i<3;++i ){
+            if(swaps[i]){
+                iWeaponIndex = i;
+                if((iCurWeaponIndex ==i) || hasWeapons[i] == false)
+                    return;
+                break;
+            }
+        }
+        if((swaps[0]||swaps[1]||swaps[2]) && !isJump && !isDodge){
+            if(m_pEquipWeapon){
+                m_pEquipWeapon.SetActive(false);
+                m_pEquipWeapon = null;
+            }
+            m_pEquipWeapon = weapons[iWeaponIndex];
+            m_pEquipWeapon.SetActive(true);
+            anim.SetTrigger("DoSwap");
+            isSwapping = true;
+            Invoke("SwapOut",0.3f);
+            iCurWeaponIndex= iWeaponIndex;
+        }
+
+    }
+
+    void SwapOut(){
+        isSwapping = false;
+    }
+
+    void Interaction(){
+        if(itemDown && m_pNearObject!= null && !isJump && !isDodge){
+            if(m_pNearObject.tag == "Weapon"){
+                Item item = m_pNearObject.GetComponent<Item>();
+                if(item.type == Item.ItemType.ITEM_GRANADE)
+                    return;
+                int weaponIndex = item.value;
+                hasWeapons[weaponIndex] = true;
+
+                Destroy(m_pNearObject);
+            }
+
+        }
     }
 
       private void Dodge()
@@ -62,16 +126,6 @@ public class Player : MonoBehaviour
 
     }
 
-
-    void OnCollisionEnter(Collision collision)
-    {
-        if(collision.gameObject.tag == "Floor")
-        {
-            anim.SetBool("IsJump", false);
-            isJump = false;
-        }
-    }
-
     private void Turn()
     {
         transform.LookAt(transform.position + moveVec);
@@ -83,6 +137,10 @@ public class Player : MonoBehaviour
 
         if(isDodge)
             moveVec = dodgeVec;
+
+        if(isSwapping)
+            moveVec = Vector3.zero;
+        
         transform.position += moveVec * speed * (walkDown ? 0.3f : 1f) * Time.deltaTime;
 
         anim.SetBool("IsRun", moveVec != Vector3.zero);
@@ -94,7 +152,55 @@ public class Player : MonoBehaviour
         hAxis = Input.GetAxisRaw("Horizontal");
         vAxis = Input.GetAxisRaw("Vertical");
         walkDown = Input.GetButton("Walk");
-        jumpDown = Input.GetButton("Jump");
+        jumpDown = Input.GetButtonDown("Jump");
+        itemDown = Input.GetButton("Interaction");
+
+        
+        for(int i=0; i<3; ++i){
+            swaps[i] = Input.GetButton("Swap" + i);
+        }
 
     }
+
+    virtual public void OnCollisionEnter(Collision other)
+    {
+        if(other.gameObject.tag == "Floor")
+        {
+            anim.SetBool("IsJump", false);
+            isJump = false;
+        }
+    }
+
+    void OnCollisionStay(Collision other)
+    {
+        if(other.gameObject.tag == "Weapon")
+        {
+            m_pNearObject = other.gameObject;
+            Debug.Log("Stay" + m_pNearObject.name);
+        }
+    }
+
+    void OnCollisionExit(Collision other)
+    {
+        if(other.gameObject.tag == "Weapon")
+        {
+            Debug.Log("Exit " + m_pNearObject.name);
+            m_pNearObject= null;
+
+        }
+    }
+
+    void OnTriggerEnter(Collider other){
+        if(other.tag =="Weapon"){
+            Item item = other.GetComponent<Item>();
+            GameMgr.GetInstance.GetItem(item.type,item.value,item);
+            int TotalItemValue = GameMgr.GetInstance.GetItemValue(item.type);
+            
+            if((TotalItemValue >= 0)&&item.type == Item.ItemType.ITEM_GRANADE)
+            {
+                grenades[TotalItemValue].SetActive(true);
+            }
+        }
+    }
+
 }
