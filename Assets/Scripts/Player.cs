@@ -16,6 +16,8 @@ public class Player : MonoBehaviour
     bool walkDown;
     bool jumpDown;
     bool itemDown;
+    bool ReloadDown;
+
     bool fireDown;
     bool isFireReady;
     float fireDelay;
@@ -26,6 +28,7 @@ public class Player : MonoBehaviour
     bool isJump = false;
     bool isDodge = false;
     bool isSwapping = false;
+    bool isReload = false;
 
     Vector3 moveVec;
     Vector3 dodgeVec;
@@ -50,9 +53,33 @@ public class Player : MonoBehaviour
         Turn();
         Jump();
         Attack();
+        Reload();
         Dodge();
         Swap();
         Interaction();
+    }
+
+    private void Reload()
+    {
+        if(m_pEquipWeapon == null||m_pEquipWeapon.type == Weapon.Type.Melee)
+            return;
+        
+        if(GameMgr.GetInstance.GetItemValue(Item.ItemType.ITEM_AMMO )==0)
+            return;
+        
+        if(ReloadDown&& !isJump && !isDodge && !isSwapping && isFireReady){
+            anim.SetTrigger("DoReload");
+            isReload = true;
+            Invoke("ReloadOut",0.5f);
+        }
+    }
+
+    void ReloadOut(){
+        int CurPlayerItemAmmo = GameMgr.GetInstance.GetItemValue(Item.ItemType.ITEM_AMMO);
+        int reloadAmmo = CurPlayerItemAmmo < m_pEquipWeapon.maxAmmo ? CurPlayerItemAmmo: m_pEquipWeapon.maxAmmo;
+        m_pEquipWeapon.curAmmo = reloadAmmo;
+        GameMgr.GetInstance.SetItem(Item.ItemType.ITEM_AMMO,-reloadAmmo);
+        isReload = false;
     }
 
     void Attack(){
@@ -64,7 +91,7 @@ public class Player : MonoBehaviour
         isFireReady = m_pEquipWeapon.rate < fireDelay;
         if(fireDown && isFireReady && !isDodge &&!isSwapping){
             m_pEquipWeapon.Use();
-            anim.SetTrigger("DoSwing");
+            anim.SetTrigger(m_pEquipWeapon.type == Weapon.Type.Melee? "DoSwing": "DoShot");
             fireDelay = 0f;
         }
 
@@ -158,7 +185,7 @@ public class Player : MonoBehaviour
         if(isDodge)
             moveVec = dodgeVec;
 
-        if(isSwapping)
+        if(isSwapping||isReload)
             moveVec = Vector3.zero;
         
         transform.position += moveVec * speed * (walkDown ? 0.3f : 1f) * Time.deltaTime;
@@ -174,7 +201,7 @@ public class Player : MonoBehaviour
         walkDown = Input.GetButton("Walk");
         jumpDown = Input.GetButtonDown("Jump");
         fireDown = Input.GetButton("Fire1");
-
+        ReloadDown = Input.GetButton("Reload");
         itemDown = Input.GetButton("Interaction");
         for(int i=0; i<3; ++i){
             swaps[i] = Input.GetButton("Swap" + i);
@@ -213,13 +240,14 @@ public class Player : MonoBehaviour
     void OnTriggerEnter(Collider other){
         if(other.tag =="Item"){
             Item item = other.GetComponent<Item>();
-            GameMgr.GetInstance.GetItem(item.type,item.value,item);
+            GameMgr.GetInstance.SetItem(item.type,item.value);
             int TotalItemValue = GameMgr.GetInstance.GetItemValue(item.type);
             
             if((TotalItemValue >= 0)&&item.type == Item.ItemType.ITEM_GRANADE)
             {
                 grenades[TotalItemValue].SetActive(true);
             }
+            Destroy(item.gameObject);
         }
     }
 

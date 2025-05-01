@@ -54,7 +54,7 @@ public class GameMgr : MonoBehaviour
         }
     }
    
-    public void GetItem(Item.ItemType eType, int itemValue, Item item){
+    public void SetItem(Item.ItemType eType, int itemValue){
         switch (eType)
             {
                 case Item.ItemType.ITEM_AMMO:
@@ -81,7 +81,7 @@ public class GameMgr : MonoBehaviour
                     break;
             }
 
-            Destroy(item.gameObject);
+            
     }
 
     public int GetItemValue(Item.ItemType eType){

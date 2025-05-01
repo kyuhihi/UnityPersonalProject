@@ -13,5 +13,6 @@ public class Item : MonoBehaviour
     void Update()
     {
         transform.Rotate(Vector3.up * m_fRotateSpeed * Time.deltaTime);
+
     }
 }
