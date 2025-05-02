@@ -10,6 +10,7 @@ public class Player : MonoBehaviour
     public GameObject[] weapons;
     public bool[] hasWeapons;
     public GameObject[] grenades;
+    public Camera m_pFollowCamera = null;
 
     float hAxis;
     float vAxis;
@@ -39,6 +40,7 @@ public class Player : MonoBehaviour
     GameObject m_pNearObject = null;
     Weapon m_pEquipWeapon = null;
 
+
     void Awake()
     {
         anim = GetComponentInChildren<Animator>();
@@ -59,12 +61,22 @@ public class Player : MonoBehaviour
         Interaction();
     }
 
+    void FreezeRotation(){
+        rigidBody.angularVelocity = Vector3.zero;
+
+    }
+
+    void FixedUpdate()
+    {
+        FreezeRotation();
+    }
+
     private void Reload()
     {
         if(m_pEquipWeapon == null||m_pEquipWeapon.type == Weapon.Type.Melee)
             return;
         
-        if(GameMgr.GetInstance.GetItemValue(Item.ItemType.ITEM_AMMO )==0)
+        if(isReload || GameMgr.GetInstance.GetItemValue(Item.ItemType.ITEM_AMMO )==0)
             return;
         
         if(ReloadDown&& !isJump && !isDodge && !isSwapping && isFireReady){
@@ -76,9 +88,11 @@ public class Player : MonoBehaviour
 
     void ReloadOut(){
         int CurPlayerItemAmmo = GameMgr.GetInstance.GetItemValue(Item.ItemType.ITEM_AMMO);
-        int reloadAmmo = CurPlayerItemAmmo < m_pEquipWeapon.maxAmmo ? CurPlayerItemAmmo: m_pEquipWeapon.maxAmmo;
+        int reloadAmmo = CurPlayerItemAmmo < m_pEquipWeapon.maxAmmo ? CurPlayerItemAmmo : m_pEquipWeapon.maxAmmo;
+
         m_pEquipWeapon.curAmmo = reloadAmmo;
         GameMgr.GetInstance.SetItem(Item.ItemType.ITEM_AMMO,-reloadAmmo);
+
         isReload = false;
     }
 
@@ -176,6 +190,15 @@ public class Player : MonoBehaviour
     private void Turn()
     {
         transform.LookAt(transform.position + moveVec);
+        if(fireDown){
+            Ray ray = m_pFollowCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit rayHit;
+            if(Physics.Raycast(ray, out rayHit,100f)){
+                Vector3 nextVec = rayHit.point - transform.position;
+                nextVec.y = transform.position.y;
+                transform.LookAt(transform.position + nextVec);
+            }
+        }
     }
 
     private void Move()

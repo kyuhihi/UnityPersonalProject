@@ -11518,6 +11518,7 @@ MonoBehaviour:
   - {fileID: 277402268}
   - {fileID: 353771603}
   - {fileID: 1357802078}
+  m_pFollowCamera: {fileID: 330585545}
   swaps: 000000
 --- !u!136 &977112912
 CapsuleCollider:
