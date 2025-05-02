@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.Design;
+using NUnit.Framework;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -10,6 +11,7 @@ public class Player : MonoBehaviour
     public GameObject[] weapons;
     public bool[] hasWeapons;
     public GameObject[] grenades;
+    public GameObject m_pGrenadeObject;
     public Camera m_pFollowCamera = null;
 
     float hAxis;
@@ -20,6 +22,7 @@ public class Player : MonoBehaviour
     bool ReloadDown;
 
     bool fireDown;
+    public bool GrenadeDown;
     bool isFireReady;
     float fireDelay;
 
@@ -55,11 +58,39 @@ public class Player : MonoBehaviour
         Move();
         Turn();
         Jump();
+        Grenade();
         Attack();
         Reload();
         Dodge();
         Swap();
         Interaction();
+    }
+
+    private void Grenade()
+    {
+        int HasGrenades =GameMgr.GetInstance.GetItemValue(Item.ItemType.ITEM_GRANADE); 
+        if(0 == HasGrenades){
+            return;
+        }
+        if(GrenadeDown && !isReload &&!isSwapping){
+             Ray ray = m_pFollowCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit rayHit;
+            if(Physics.Raycast(ray, out rayHit,100f)){
+                Vector3 nextVec = rayHit.point - transform.position;
+                nextVec.y = 2f;
+
+                GameObject instantGrenade = Instantiate(m_pGrenadeObject,transform.position,transform.rotation);
+                Debug.Log("instantGrenade??");
+
+                Rigidbody rigidGrenade =instantGrenade.GetComponent<Rigidbody>();
+                rigidGrenade.AddForce(nextVec,ForceMode.Impulse);
+                rigidGrenade.AddTorque(Vector3.back *10, ForceMode.Impulse);
+
+                GameMgr.GetInstance.SetItem(Item.ItemType.ITEM_GRANADE,-1);
+                --HasGrenades;
+                grenades[HasGrenades].SetActive(false);
+            }
+        }
     }
 
     void FreezeRotation(){
@@ -233,6 +264,7 @@ public class Player : MonoBehaviour
         walkDown = Input.GetButton("Walk");
         jumpDown = Input.GetButtonDown("Jump");
         fireDown = Input.GetButton("Fire1");
+        GrenadeDown = Input.GetButton("Fire1");
         ReloadDown = Input.GetButton("Reload");
         itemDown = Input.GetButton("Interaction");
         for(int i=0; i<3; ++i){
