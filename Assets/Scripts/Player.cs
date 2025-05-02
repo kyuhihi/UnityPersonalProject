@@ -30,6 +30,7 @@ public class Player : MonoBehaviour
     bool isDodge = false;
     bool isSwapping = false;
     bool isReload = false;
+    bool isBorder = false; //경계에 닿았는가 벽충돌문제
 
     Vector3 moveVec;
     Vector3 dodgeVec;
@@ -66,9 +67,17 @@ public class Player : MonoBehaviour
 
     }
 
+    void StopToWall(){
+        Debug.DrawRay(transform.position, transform.forward * 5 , Color.green);
+        isBorder = Physics.Raycast(transform.position,transform.forward,
+                                    5f,LayerMask.GetMask("Wall"));
+
+    }
+
     void FixedUpdate()
     {
         FreezeRotation();
+        StopToWall();
     }
 
     private void Reload()
@@ -210,8 +219,8 @@ public class Player : MonoBehaviour
 
         if(isSwapping||isReload)
             moveVec = Vector3.zero;
-        
-        transform.position += moveVec * speed * (walkDown ? 0.3f : 1f) * Time.deltaTime;
+        if(!isBorder)
+            transform.position += moveVec * speed * (walkDown ? 0.3f : 1f) * Time.deltaTime;
 
         anim.SetBool("IsRun", moveVec != Vector3.zero);
         anim.SetBool("IsWalk", walkDown);
