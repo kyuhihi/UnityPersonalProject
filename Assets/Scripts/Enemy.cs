@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
@@ -7,9 +8,14 @@ public class Enemy : MonoBehaviour
     public int maxHealth;
     public int curHealth;
 
+    public Transform target;
+    bool isChase = false;
+
     Rigidbody rigid;
     BoxCollider boxCollider;
     Material mat;
+    NavMeshAgent nav;
+    Animator anim;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
@@ -17,8 +23,36 @@ public class Enemy : MonoBehaviour
 
         rigid = GetComponent<Rigidbody>();
         boxCollider = GetComponent<BoxCollider>();
-        mat = GetComponent<MeshRenderer>().material;
-        
+        mat = GetComponentInChildren<MeshRenderer>().material;
+        nav = GetComponent<NavMeshAgent>();
+        anim = GetComponentInChildren<Animator>();
+
+        Invoke("ChaseStart",2);
+    }
+
+    void FreezeVelocity(){
+        if(isChase){
+            rigid.linearVelocity = Vector3.zero;
+            rigid.angularVelocity = Vector3.zero;
+        }
+
+
+    }
+
+
+    public void FixedUpdate()
+    {
+        FreezeVelocity();
+    }
+
+    void ChaseStart(){
+        isChase = true;
+        anim.SetBool("isWalk",true); 
+    }
+    void Update()
+    {
+        if(isChase)
+            nav.SetDestination(target.position);
     }
 
     void OnTriggerEnter(Collider other)
@@ -54,6 +88,9 @@ public class Enemy : MonoBehaviour
         else{
             mat.color = Color.gray;
             gameObject.layer = 12;
+            isChase = false;
+            nav.enabled = false;
+            anim.SetTrigger("DoDie");
 
             if(isGrenade){
                 reactVec = reactVec.normalized;

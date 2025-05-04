@@ -69,7 +69,6 @@ public class Player : MonoBehaviour
     private void Grenade()
     {
         int HasGrenades = GameMgr.GetInstance.GetItemValue(Item.ItemType.ITEM_GRANADE); 
-        Debug.Log("HasGrenades??   " + HasGrenades);
 
         if(HasGrenades < 0){
             return;
