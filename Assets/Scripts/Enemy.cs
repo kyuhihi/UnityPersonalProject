@@ -28,7 +28,7 @@ public class Enemy : MonoBehaviour
             curHealth -= weapon.damage;
             Debug.Log("Melleeee " + curHealth);
             Vector3 reactVec = transform.position - other.transform.position;
-            StartCoroutine(OnDamage(reactVec));
+            StartCoroutine(OnDamage(reactVec,false));
 
         }
         else if( other.tag == "Bullet"){
@@ -38,12 +38,12 @@ public class Enemy : MonoBehaviour
             Debug.Log("Bullet " + curHealth);
             Vector3 reactVec = transform.position - other.transform.position;
             Destroy(other.gameObject);
-            StartCoroutine(OnDamage(reactVec));
+            StartCoroutine(OnDamage(reactVec,false));
         }
         
     }
 
-    IEnumerator OnDamage(Vector3 reactVec){
+    IEnumerator OnDamage(Vector3 reactVec, bool isGrenade){
         mat.color = Color.red;
 
         yield return new WaitForSeconds(0.1f);
@@ -54,11 +54,32 @@ public class Enemy : MonoBehaviour
         else{
             mat.color = Color.gray;
             gameObject.layer = 12;
-            reactVec = reactVec.normalized;
-            reactVec += Vector3.up;
-            rigid.AddForce(reactVec *5f ,ForceMode.Impulse);
+
+            if(isGrenade){
+                reactVec = reactVec.normalized;
+                reactVec += Vector3.up * 3f;
+                rigid.freezeRotation =false;
+                rigid.AddForce(reactVec * 5f ,ForceMode.Impulse);
+                rigid.AddTorque(reactVec* 15f, ForceMode.Impulse);
+            }
+            else 
+            {
+                reactVec = reactVec.normalized;
+                reactVec += Vector3.up;
+                rigid.AddForce(reactVec *5f ,ForceMode.Impulse);
+            }
+
+           
             Destroy(gameObject,4);
         }
+    }
+
+    public void HitByGrenade(Vector3 GrenadePos){
+        curHealth -= 100;
+        Debug.Log("HitByGrenade " + curHealth);
+        Vector3 reactVec = transform.position - GrenadePos;
+         
+        StartCoroutine(OnDamage(reactVec,true));
     }
 }
 

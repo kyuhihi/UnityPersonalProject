@@ -68,8 +68,10 @@ public class Player : MonoBehaviour
 
     private void Grenade()
     {
-        int HasGrenades =GameMgr.GetInstance.GetItemValue(Item.ItemType.ITEM_GRANADE); 
-        if(0 == HasGrenades){
+        int HasGrenades = GameMgr.GetInstance.GetItemValue(Item.ItemType.ITEM_GRANADE); 
+        Debug.Log("HasGrenades??   " + HasGrenades);
+
+        if(HasGrenades < 0){
             return;
         }
         if(GrenadeDown && !isReload &&!isSwapping){
@@ -77,7 +79,7 @@ public class Player : MonoBehaviour
             RaycastHit rayHit;
             if(Physics.Raycast(ray, out rayHit,100f)){
                 Vector3 nextVec = rayHit.point - transform.position;
-                nextVec.y = 2f;
+                nextVec.y = 3f;
 
                 GameObject instantGrenade = Instantiate(m_pGrenadeObject,transform.position,transform.rotation);
                 Debug.Log("instantGrenade??");
@@ -87,7 +89,6 @@ public class Player : MonoBehaviour
                 rigidGrenade.AddTorque(Vector3.back *10, ForceMode.Impulse);
 
                 GameMgr.GetInstance.SetItem(Item.ItemType.ITEM_GRANADE,-1);
-                --HasGrenades;
                 grenades[HasGrenades].SetActive(false);
             }
         }
@@ -264,12 +265,18 @@ public class Player : MonoBehaviour
         walkDown = Input.GetButton("Walk");
         jumpDown = Input.GetButtonDown("Jump");
         fireDown = Input.GetButton("Fire1");
-        GrenadeDown = Input.GetButton("Fire1");
+        GrenadeDown = Input.GetKeyDown(KeyCode.Mouse1);
         ReloadDown = Input.GetButton("Reload");
         itemDown = Input.GetButton("Interaction");
         for(int i=0; i<3; ++i){
             swaps[i] = Input.GetButton("Swap" + i);
         }
+
+        // //Detect if the right mouse button is pressed
+        // if (Input.GetKeyUp(KeyCode.Mouse1))
+        // {
+        //     Debug.Log("Mouse 1");
+        // }
 
     }
 
