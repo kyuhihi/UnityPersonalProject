@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.ComponentModel.Design;
 using NUnit.Framework;
 using Unity.VisualScripting;
@@ -34,21 +35,25 @@ public class Player : MonoBehaviour
     bool isSwapping = false;
     bool isReload = false;
     bool isBorder = false; //경계에 닿았는가 벽충돌문제
+    bool isDamage = false;
 
     Vector3 moveVec;
     Vector3 dodgeVec;
 
     Rigidbody rigidBody;
     Animator anim;
+    MeshRenderer[] meshs;
 
     GameObject m_pNearObject = null;
     Weapon m_pEquipWeapon = null;
+
 
 
     void Awake()
     {
         anim = GetComponentInChildren<Animator>();
         rigidBody = GetComponent<Rigidbody>();
+        meshs = GetComponentsInChildren<MeshRenderer>();
     }
 
     // Update is called once per frame
@@ -319,6 +324,33 @@ public class Player : MonoBehaviour
             }
             Destroy(item.gameObject);
         }
-    }
+        else if(other.tag == "EnemyBullet"){
+            if(!isDamage){
+                Bullet enemyBullet = other.GetComponent<Bullet>();
+                GameMgr.GetInstance.SetItem(Item.ItemType.ITEM_HEART,-enemyBullet.damage);
+                if(other.GetComponent<Rigidbody>() != null)
+                    Destroy(other.gameObject);
 
+                StartCoroutine(OnDamage()); 
+            }
+
+        }
+
+        
+    }
+    IEnumerator OnDamage(){
+            isDamage = true;
+            foreach (MeshRenderer mesh in meshs)
+            {
+                mesh.material.color = Color.red;
+            }
+
+            yield return new WaitForSeconds(1f);
+            isDamage = false;
+
+            foreach (MeshRenderer mesh in meshs)
+            {
+                mesh.material.color = Color.white;
+            }
+        }
 }
