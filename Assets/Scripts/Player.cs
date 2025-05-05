@@ -328,22 +328,28 @@ public class Player : MonoBehaviour
             if(!isDamage){
                 Bullet enemyBullet = other.GetComponent<Bullet>();
                 GameMgr.GetInstance.SetItem(Item.ItemType.ITEM_HEART,-enemyBullet.damage);
-                if(other.GetComponent<Rigidbody>() != null)
-                    Destroy(other.gameObject);
 
-                StartCoroutine(OnDamage()); 
+                bool isBossAttack = other.name == "Boss Melee Area";
+
+                
+                StartCoroutine(OnDamage(isBossAttack)); 
+
             }
+            if(other.GetComponent<Rigidbody>() != null)
+                Destroy(other.gameObject);            
 
         }
 
         
     }
-    IEnumerator OnDamage(){
+    IEnumerator OnDamage(bool isBossAttack){
             isDamage = true;
             foreach (MeshRenderer mesh in meshs)
             {
                 mesh.material.color = Color.red;
             }
+            if(isBossAttack)
+                rigidBody.AddForce(transform.forward * -25f,ForceMode.Impulse);
 
             yield return new WaitForSeconds(1f);
             isDamage = false;
@@ -352,5 +358,8 @@ public class Player : MonoBehaviour
             {
                 mesh.material.color = Color.white;
             }
+            if(isBossAttack)
+                rigidBody.linearVelocity = Vector3.zero;
+
         }
 }

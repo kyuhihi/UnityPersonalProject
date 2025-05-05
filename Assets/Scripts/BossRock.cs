@@ -22,7 +22,7 @@ public class BossRock : Bullet
     }
     IEnumerator GainPower(){
         while( !isShot){
-            angularPower += 0.02f;
+            angularPower += 0.01f;
             scaleValue += 0.005f;
             transform.localScale = Vector3.one * scaleValue;
             rigid.AddTorque(transform.right* angularPower,ForceMode.Acceleration);
