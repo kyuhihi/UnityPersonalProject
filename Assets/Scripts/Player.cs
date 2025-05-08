@@ -15,6 +15,8 @@ public class Player : MonoBehaviour
     public GameObject m_pGrenadeObject;
     public Camera m_pFollowCamera = null;
 
+    public int score;
+
     float hAxis;
     float vAxis;
     bool walkDown;
@@ -36,6 +38,7 @@ public class Player : MonoBehaviour
     bool isReload = false;
     bool isBorder = false; //경계에 닿았는가 벽충돌문제
     bool isDamage = false;
+    bool isShop = false;
 
     Vector3 moveVec;
     Vector3 dodgeVec;
@@ -45,7 +48,7 @@ public class Player : MonoBehaviour
     MeshRenderer[] meshs;
 
     GameObject m_pNearObject = null;
-    Weapon m_pEquipWeapon = null;
+    public Weapon m_pEquipWeapon = null;
 
 
 
@@ -54,6 +57,8 @@ public class Player : MonoBehaviour
         anim = GetComponentInChildren<Animator>();
         rigidBody = GetComponent<Rigidbody>();
         meshs = GetComponentsInChildren<MeshRenderer>();
+        Debug.Log(PlayerPrefs.GetInt("MaxScore"));
+        //PlayerPrefs.SetInt("MaxScore", 1120);
     }
 
     // Update is called once per frame
@@ -148,7 +153,7 @@ public class Player : MonoBehaviour
 
         fireDelay +=Time.deltaTime;
         isFireReady = m_pEquipWeapon.rate < fireDelay;
-        if(fireDown && isFireReady && !isDodge &&!isSwapping){
+        if(!isShop && fireDown && isFireReady && !isDodge &&!isSwapping){
             m_pEquipWeapon.Use();
             anim.SetTrigger(m_pEquipWeapon.type == Weapon.Type.Melee? "DoSwing": "DoShot");
             fireDelay = 0f;
@@ -198,6 +203,11 @@ public class Player : MonoBehaviour
                 hasWeapons[weaponIndex] = true;
 
                 Destroy(m_pNearObject);
+            }
+            else if(m_pNearObject.tag == "Shop"){
+                Shop shopscript = m_pNearObject.GetComponent<Shop>();
+                shopscript.Enter(this);
+                isShop = true;
             }
 
         }
@@ -338,10 +348,29 @@ public class Player : MonoBehaviour
             if(other.GetComponent<Rigidbody>() != null)
                 Destroy(other.gameObject);            
 
-        }
-
-        
+        }   
     }
+
+    void OnTriggerStay(Collider other){
+        if(other.tag == "Weapon"|| other.tag == "Shop"){
+            m_pNearObject = other.gameObject;
+        }
+    }
+
+    void OnTriggerExit(Collider other){
+        if(other.tag == "Weapon"){
+            m_pNearObject = null;
+        }
+        else if (other.tag == "Shop"){
+            Shop shop = m_pNearObject.GetComponent<Shop>();
+            shop.Exit();
+
+            m_pNearObject = null;
+            isShop =false;
+        }
+    }
+    
+
     IEnumerator OnDamage(bool isBossAttack){
             isDamage = true;
             foreach (MeshRenderer mesh in meshs)

@@ -1,24 +1,62 @@
+using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameMgr : MonoBehaviour
 {
-    //게임매니저의 인스턴스를 담는 전역변수(static 변수이지만 이해하기 쉽게 전역변수라고 하겠다).
-    //이 게임 내에서 게임매니저 인스턴스는 이 instance에 담긴 녀석만 존재하게 할 것이다.
-    //보안을 위해 private으로.
+    [System.Serializable]
+    public class PlayerInfo{
+        public int Ammo = 100;
+        public int Coin = 4000;
+        public int Health = 100;
+        public int HasGrenades = -1;
 
-    public int Ammo;
-    public int Coin;
-    public int Health;
-    public int HasGrenades;
+        public int maxAmmo = 999;
+        public int maxCoin = 99999;
+        public int maxHealth = 100;
+        public int maxHasGrenades = 4;
+    }
+    public PlayerInfo playerInfo;
+    private static GameMgr m_pInstance = null;
 
-    public int maxAmmo;
-    public int maxCoin;
-    public int maxHealth;
-    public int maxHasGrenades;
+    public GameObject itemShop;
+    public GameObject weaponShop;
+    public GameObject StartZone;
+
+    public GameObject menuCam;
+    public GameObject gameCam;
+    public Player player;
+    public Boss boss;
+    public int stage;
+    public float playTime;
+    public bool isBattle;
+    public int enemyCntA;
+    public int enemyCntB;
+    public int enemyCntC;
 
 
-     private static GameMgr m_pInstance = null;
+    public GameObject menuPanel;
+    public GameObject gamePanel;
+    public Text maxScoreText;
+    public Text scoreText;
+    public Text stageText;
+    public Text playTimeText;
+    public Text playerHealthText;
+    public Text playerAmmoText;
+    public Text playerCoinText;
+     
+    public Image weapon1Img;
+    public Image weapon2Img;
+    public Image weapon3Img;
+    public Image weaponRImg;
+
+    public Text enemyAText;
+    public Text enemyBText;
+    public Text enemyCText;
+    public RectTransform bossHealthGroup;
+    public RectTransform bossHealthBar;
+    
 
     void Awake()
     {
@@ -31,6 +69,9 @@ public class GameMgr : MonoBehaviour
             //gameObject만으로도 이 스크립트가 컴포넌트로서 붙어있는 Hierarchy상의 게임오브젝트라는 뜻이지만, 
             //나는 헷갈림 방지를 위해 this를 붙여주기도 한다.
             DontDestroyOnLoad(this.gameObject);
+            maxScoreText.text = string.Format("{0:n0}", PlayerPrefs.GetInt("MaxScore"));  //string.Format 함수로 문자열 양식 적용
+
+            
         }
         else
         {
@@ -39,6 +80,94 @@ public class GameMgr : MonoBehaviour
             //그래서 이미 전역변수인 instance에 인스턴스가 존재한다면 자신(새로운 씬의 GameMgr)을 삭제해준다.
             Destroy(this.gameObject);
         }
+    }
+
+    public void GameStart(){
+        menuCam.SetActive(false);
+        gameCam.SetActive(true);
+
+        menuPanel.SetActive(false);
+        gamePanel.SetActive(true);
+
+        player.gameObject.SetActive(true);    
+    }
+
+    void Update()
+    {
+        if(isBattle)
+            playTime += Time.deltaTime;
+    }
+
+    public void StageStart(){
+        itemShop.SetActive(false);
+        weaponShop.SetActive(false);
+        StartZone.SetActive(false);
+
+        isBattle = true;
+        StartCoroutine(InBattle());
+
+    }
+    public void StageEnd(){
+        player.transform.position = Vector3.up * 0.8f;
+        itemShop.SetActive(true);
+        weaponShop.SetActive(true);
+        StartZone.SetActive(true);
+        ++stage;
+        isBattle = false;
+
+    }
+    IEnumerator InBattle(){
+        yield return new WaitForSeconds(5f);
+        StageEnd();
+    }
+
+
+    void LateUpdate() //Ui 안성맞춤 LateUpdate
+    {
+        //상단 UI
+        scoreText.text = string.Format("{0:n0}", player.score);
+        stageText.text = "STAGE " + stage;
+
+        int hour = (int)(playTime / 3600); //초단위 시간을 3600, 60으로 나누어 시분초로 계산
+        int min = (int)((playTime - hour * 3600) / 60);
+        int second = (int)(playTime % 60);
+
+        playTimeText.text = string.Format("{0:00}", hour) + ":" 
+                                        + string.Format("{0:00}", min) + ":" 
+                                         + string.Format("{0:00}", second);
+
+        //플레이어 UI
+        playerHealthText.text = playerInfo.Health + " / " + playerInfo.maxHealth;
+        playerCoinText.text = string.Format("{0:n0}", playerInfo.Coin);
+        if (player.m_pEquipWeapon == null)
+            playerAmmoText.text = "- / " + playerInfo.Ammo;
+        else if (player.m_pEquipWeapon.type == Weapon.Type.Melee)
+            playerAmmoText.text = "- / " + playerInfo.Ammo;
+        else
+            playerAmmoText.text = player.m_pEquipWeapon.curAmmo + " / " + playerInfo.Ammo;
+
+        //무기 UI
+        weapon1Img.color = new Color(1, 1, 1, player.hasWeapons[0] ? 1 : 0);
+        weapon2Img.color = new Color(1, 1, 1, player.hasWeapons[1] ? 1 : 0);
+        weapon3Img.color = new Color(1, 1, 1, player.hasWeapons[2] ? 1 : 0);
+        weaponRImg.color = new Color(1, 1, 1, playerInfo.HasGrenades > 0 ? 1 : 0);
+        
+        //몬스터 숫자 UI
+        enemyAText.text = enemyCntA.ToString();
+        enemyBText.text = enemyCntB.ToString();
+        enemyCText.text = enemyCntC.ToString();
+
+        //보스 체력 UI 이미지의 scale을 남을 체력 비율에 따라 변경
+        //보스 변수가 비어있을 때 UI업데이트 하지 않도록 조건 추가    
+        if (boss != null)
+        {
+            //bossHealthGroup.anchoredPosition = Vector3.down * 30;
+            bossHealthBar.localScale = new Vector3((float)boss.curHealth / boss.maxHealth, 1, 1);
+        }
+        else
+        {
+            bossHealthGroup.anchoredPosition = Vector3.up * 200;          
+        }           
     }
 
     //게임 매니저 인스턴스에 접근할 수 있는 프로퍼티. static이므로 다른 클래스에서 맘껏 호출할 수 있다.
@@ -58,24 +187,24 @@ public class GameMgr : MonoBehaviour
         switch (eType)
             {
                 case Item.ItemType.ITEM_AMMO:
-                    Ammo += itemValue;
-                    if(Ammo > maxAmmo)
-                        Ammo = maxAmmo;
+                    playerInfo.Ammo += itemValue;
+                    if(playerInfo.Ammo > playerInfo.maxAmmo)
+                        playerInfo.Ammo = playerInfo.maxAmmo;
                     break;
                 case Item.ItemType.ITEM_COIN:
-                    Coin += itemValue;
-                    if(Coin > maxCoin)
-                        Coin = maxCoin;
+                    playerInfo.Coin += itemValue;
+                    if(playerInfo.Coin > playerInfo.maxCoin)
+                        playerInfo.Coin = playerInfo.maxCoin;
                     break;
                 case Item.ItemType.ITEM_HEART:
-                    Health += itemValue;
-                    if(Health > maxHealth)
-                        Health = maxHealth;
+                    playerInfo.Health += itemValue;
+                    if(playerInfo.Health > playerInfo.maxHealth)
+                        playerInfo.Health = playerInfo.maxHealth;
                     break;                    
                 case Item.ItemType.ITEM_GRANADE:
-                    HasGrenades += itemValue;
-                    if(HasGrenades > maxHasGrenades)
-                        HasGrenades = maxHasGrenades;
+                    playerInfo.HasGrenades += itemValue;
+                    if(playerInfo.HasGrenades > playerInfo.maxHasGrenades)
+                        playerInfo.HasGrenades = playerInfo.maxHasGrenades;
                     break;
                 default:
                     break;
@@ -88,42 +217,19 @@ public class GameMgr : MonoBehaviour
         switch (eType)
             {
                 case Item.ItemType.ITEM_AMMO:
-                    return Ammo;
+                    return playerInfo.Ammo;
                     
                 case Item.ItemType.ITEM_COIN:
-                    return Coin;
+                    return playerInfo.Coin;
 
                 case Item.ItemType.ITEM_HEART:
-                    return Health;            
+                    return playerInfo.Health;            
                 case Item.ItemType.ITEM_GRANADE:
-                    return HasGrenades;
+                    return playerInfo.HasGrenades;
                 default:
                     return -1;
             }
     }
 
-    public void InitGame()
-    {
-
-    }
-
-    public void PauseGame()
-    {
-
-    }
-
-    public void ContinueGame()
-    {
-
-    }
-
-    public void RestartGame()
-    {
-
-    }
-
-    public void StopGame()
-    {
-
-    }
+    
 }
