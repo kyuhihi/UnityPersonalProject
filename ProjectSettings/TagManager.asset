@@ -4,15 +4,7 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - Floor
-  - Item
-  - Weapon
-  - Melee
-  - Wall
-  - Bullet
-  - Enemy
-  - EnemyBullet
-  - Shop
+  - Pick Up
   layers:
   - Default
   - TransparentFX
@@ -20,14 +12,14 @@ TagManager:
   - 
   - Water
   - UI
-  - Floor
-  - Player
-  - PlayerBullet
-  - BulletCase
-  - Wall
-  - Enemy
-  - EnemyDead
-  - EnemyBullet
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
   - 
   - 
   - 
