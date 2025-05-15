@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 3
   tags:
   - Pick Up
+  - CinemachineTarget
+  - Ground
   layers:
   - Default
   - TransparentFX
