@@ -71,6 +71,8 @@ namespace StarterAssets
         private Animator _animator;
         private Rigidbody _rb;
         private StarterAssetsInputs _input;
+
+        private AttackSystem _attackSystem;
         private GameObject _mainCamera;
 
         // Animation Hashes
@@ -80,6 +82,7 @@ namespace StarterAssets
         private int _animIDMotionSpeed;
         private int _animIDVeritical;
         private int _animIDHorizontal;
+        private int _animIDAttackCnt;
 
         private float _cinemachineTargetYaw;
         private float _cinemachineTargetPitch;
@@ -96,6 +99,7 @@ namespace StarterAssets
             _rb = GetComponent<Rigidbody>();
             _animator = GetComponentInChildren<Animator>();
             _input = GetComponent<StarterAssetsInputs>();
+            _attackSystem = GetComponent<AttackSystem>();
             if (_mainCamera == null)
                 _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
 #if ENABLE_INPUT_SYSTEM
@@ -121,13 +125,10 @@ namespace StarterAssets
             Move();
             Jump();
             UpdateAnimator();
-            // Debug.Log("Rotation: " + _rb.rotation.eulerAngles);
         }
         private void FixedUpdate()
         {
-            // Rigidbody가 의도치 않게 돌아가는 것을 방지
-            Vector3 currentEuler = _rb.rotation.eulerAngles;
-            _rb.MoveRotation(Quaternion.Euler(0, currentEuler.y, 0));
+
         }
 
         private void LateUpdate()
@@ -143,6 +144,7 @@ namespace StarterAssets
             _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
             _animIDVeritical = Animator.StringToHash("Vertical");
             _animIDHorizontal = Animator.StringToHash("Horizontal");
+            _animIDAttackCnt = Animator.StringToHash("AttackCnt");
         }
 
         private void GroundedCheck()
@@ -186,6 +188,9 @@ namespace StarterAssets
         }
         private void Move()
         {
+            if (_animator.GetInteger(_animIDAttackCnt) >= 0)
+                return;
+
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
             if (_input.move == Vector2.zero) targetSpeed = 0.0f;
 
@@ -197,14 +202,11 @@ namespace StarterAssets
             _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
             if (_animationBlend < 0.01f) _animationBlend = 0f;
 
-            // 회전 속도
-  
-
             // 회전은 좌/우 입력 있을 때만
             if (Mathf.Abs(_input.move.x) > 0.1f)
             {
                 float turnAmount = _input.move.x;
-                _targetRotation += turnAmount * 120f * Time.deltaTime; // RotationSpeed는 적당한 값 (예: 120f)
+                _targetRotation += turnAmount * 120f * Time.deltaTime;
                 transform.rotation = Quaternion.Euler(0f, _targetRotation, 0f);
             }
 
@@ -261,9 +263,9 @@ namespace StarterAssets
             _animator.SetFloat(_animIDMotionSpeed, _input.move.magnitude);
             _animator.SetBool(_animIDGrounded, Grounded);
 
-            
-            _animator.SetFloat(_animIDVeritical,Mathf.Lerp(_animator.GetFloat(_animIDVeritical), _input.move.y * _speed, 0.15f) );
-            _animator.SetFloat(_animIDHorizontal,Mathf.Lerp(_animator.GetFloat(_animIDHorizontal), _input.move.x * _speed, 0.15f));
+
+            _animator.SetFloat(_animIDVeritical, Mathf.Lerp(_animator.GetFloat(_animIDVeritical), _input.move.y * _speed, 0.15f));
+            _animator.SetFloat(_animIDHorizontal, Mathf.Lerp(_animator.GetFloat(_animIDHorizontal), _input.move.x * _speed, 0.15f));
 
             // 점프 종료 타이밍을 더 정확히
             if (!_input.jump && Grounded)
@@ -314,5 +316,6 @@ namespace StarterAssets
                 AudioSource.PlayClipAtPoint(LandingAudioClip, transform.position, FootstepAudioVolume);
             }
         }
+        
     }
 }

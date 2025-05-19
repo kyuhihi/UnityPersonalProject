@@ -93008,4 +93008,11 @@ AnimationClip:
   m_EulerEditorCurves: []
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
-  m_Events: []
+  m_Events:
+  - time: 0.96666664
+    functionName: AttakForceEvent
+    data: 
+    objectReferenceParameter: {fileID: 11500000, guid: ae5bdd67a3cf08d40b73d75d77a5380f, type: 3}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0

@@ -9,6 +9,7 @@ public class AttackReset :StateMachineBehaviour
         animator.ResetTrigger(triggerName);
         animator.SetInteger("AttackCnt", -1);
         animator.applyRootMotion = false;
+        
     }
 
 }

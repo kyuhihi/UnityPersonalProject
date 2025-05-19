@@ -7,6 +7,7 @@ TagManager:
   - Pick Up
   - CinemachineTarget
   - Ground
+  - FocusTarget
   layers:
   - Default
   - TransparentFX
