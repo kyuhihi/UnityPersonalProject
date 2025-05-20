@@ -252,7 +252,7 @@
                     "name": "",
                     "id": "cddc3a92-07ef-4b57-996a-7ba5b8304f6f",
                     "path": "<Mouse>/rightButton",
-                    "interactions": "",
+                    "interactions": "Press(behavior=2)",
                     "processors": "",
                     "groups": ";KeyboardMouse",
                     "action": "Focus",

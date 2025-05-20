@@ -44,10 +44,20 @@ public class AttackSystem : MonoBehaviour
 
     public void OnFocus(InputValue value)
     {
-        // 1. 현재 위치 기준 주변 셀에서만 후보군 추출 (GridManager 활용)
-        List<GameObject> candidates = GridManager.Instance.GetNearbyObjects(transform.position);
+        if (value.isPressed)
+        {
+            StartFocus();
+        }
+        else
+        {
+            ReleaseFocus();
+        }
+    }
 
-        // 2. "FocusTarget" 태그만 필터링
+    // 포커스 시작
+    private void StartFocus()
+    {
+        List<GameObject> candidates = GridManager.Instance.GetNearbyObjects(transform.position);
         GameObject nearest = null;
         float minSqrDist = float.MaxValue;
         Vector3 myPos = transform.position;
@@ -75,6 +85,13 @@ public class AttackSystem : MonoBehaviour
         _isFocusing = true;
         _focusTarget = nearest;
         Debug.Log($"가장 가까운 FocusTarget: {nearest.name}");
+    }
+
+    // 포커스 해제
+    private void ReleaseFocus()
+    {
+        _isFocusing = false;
+        _focusTarget = null;
     }
 
     // Move 함수에서 참고할 수 있도록 포커스 상태와 타겟을 외부에서 접근 가능하게 프로퍼티로 제공

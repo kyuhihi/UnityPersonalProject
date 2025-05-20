@@ -6,6 +6,9 @@ public class GridManager : MonoBehaviour
     public static GridManager Instance { get; private set; }
     public int _gridSizeX = 10;
     public float _cellSize = 10f;
+
+    [SerializeField]
+    private int _searchRange = 3;
     private Dictionary<Vector2Int, List<GameObject>> _grid = new Dictionary<Vector2Int, List<GameObject>>();
 
     private void Awake()
@@ -48,9 +51,9 @@ public class GridManager : MonoBehaviour
     {
         List<GameObject> result = new List<GameObject>();
         Vector2Int center = GetCell(pos);
-        for (int dx = -1; dx <= 1; dx++)
+        for (int dx = -_searchRange; dx <= _searchRange; dx++)
         {
-            for (int dy = -1; dy <= 1; dy++)
+            for (int dy = -_searchRange; dy <= _searchRange; dy++)
             {
                 Vector2Int cell = new Vector2Int(center.x + dx, center.y + dy);
                 if (_grid.ContainsKey(cell))

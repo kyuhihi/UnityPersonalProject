@@ -191,6 +191,20 @@ namespace StarterAssets
             if (_animator.GetInteger(_animIDAttackCnt) >= 0)
                 return;
 
+            CalculateMoveSpeed();
+
+            // AttackSystem에서 포커스 중이면 FocusMove로 분기
+            if (_attackSystem != null && _attackSystem.IsFocusing && _attackSystem.FocusTarget != null)
+            {
+                FocusMove();
+                return;
+            }
+
+            NormalMove();
+        }
+
+        private void CalculateMoveSpeed()
+        {
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
             if (_input.move == Vector2.zero) targetSpeed = 0.0f;
 
@@ -201,6 +215,11 @@ namespace StarterAssets
 
             _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
             if (_animationBlend < 0.01f) _animationBlend = 0f;
+        }
+
+        private void NormalMove()
+        {
+
 
             // 회전은 좌/우 입력 있을 때만
             if (Mathf.Abs(_input.move.x) > 0.1f)
@@ -224,6 +243,35 @@ namespace StarterAssets
                 // 정지 시 xz 평면 속도 0으로
                 _rb.linearVelocity = new Vector3(0f, _rb.linearVelocity.y, 0f);
             }
+        }
+
+        private void FocusMove()
+        {
+            var target = _attackSystem.FocusTarget;
+            if (target == null) return;
+
+            Vector3 myPos = transform.position;
+            Vector3 targetPos = target.transform.position;
+
+            // 바라보기 (수평만)
+            Vector3 lookDir = targetPos - myPos;
+            lookDir.y = 0;
+            if (lookDir.sqrMagnitude > 0.001f)
+                transform.rotation = Quaternion.LookRotation(lookDir);
+            float orbitInput = -_input.move.x;
+            float orbitAngularSpeed = 90f; // 1초에 90도(원하는 값으로 조절)
+            if (Mathf.Abs(orbitInput) > 0.1f)
+            {
+                Vector3 center = targetPos;
+                Vector3 offset = transform.position - center;
+                float angle = orbitAngularSpeed * orbitInput * Time.deltaTime;
+                Quaternion rot = Quaternion.AngleAxis(angle, Vector3.up);
+                Vector3 newOffset = rot * offset;
+                transform.position = center + newOffset;
+            }
+ 
+
+
         }
 
         private void Jump()
@@ -316,6 +364,6 @@ namespace StarterAssets
                 AudioSource.PlayClipAtPoint(LandingAudioClip, transform.position, FootstepAudioVolume);
             }
         }
-        
+
     }
 }
